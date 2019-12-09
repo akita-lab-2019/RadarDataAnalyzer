@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pylab
-import matplotlib.pyplot as plt
 import sys
 
 # キーボードのイベント処理
@@ -12,9 +12,9 @@ def onkey(event):
 
 # クリックされたデータにマーカーをつける
 def oncpaint(event):
-    ind=np.searchsorted(x,event.xdata)
+    ind=np.searchsorted(t,event.xdata)
     plt.title("You clicked index="+str(ind))
-    ax.plot([x[ind]],[y[ind]],".",color="red")
+    axL.plot([t[ind]],[x1[ind]],".",color="red")
     fig.canvas.draw()
 
 # マウスのイベント処理
@@ -23,16 +23,27 @@ def onclick(event):
     %(event.button, event.x, event.y, event.xdata, event.ydata))
     oncpaint(event)
 
-def main():
-    x = [0, 1, 2, 3]
-    y = [0, 1, 4 ,9]
-    fig=plt.figure()
-    ax=fig.add_subplot(111)
-    ax.plot(x,y)
-    cid = fig.canvas.mpl_connect('button_press_event', onclick)
-    cid = fig.canvas.mpl_connect('key_press_event', onkey)
-    plt.show()
+t = np.linspace(-np.pi, np.pi, 1000)
 
-if __name__ == "__main__":
-    main()
+x1 = np.sin(2*t)
+x2 = np.cos(2*t)
 
+fig, (axL, axR) = plt.subplots(ncols=2, figsize=(10,4))
+
+axL.plot(t, x1, linewidth=2)
+axL.set_title('sin')
+axL.set_xlabel('t')
+axL.set_ylabel('x')
+axL.set_xlim(-np.pi, np.pi)
+axL.grid(True)
+
+axR.plot(t, x2, linewidth=2)
+axR.set_title('cos')
+axR.set_xlabel('t')
+axR.set_ylabel('x')
+axR.set_xlim(-np.pi, np.pi)
+axR.grid(True)
+
+cid = fig.canvas.mpl_connect('button_press_event', onclick)
+cid = fig.canvas.mpl_connect('key_press_event', onkey)
+plt.show()
