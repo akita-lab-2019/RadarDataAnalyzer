@@ -1,8 +1,21 @@
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 import pylab
 import sys
+
+def drawRight(index):
+    global plt_r
+    plt_r[0].remove()
+    np_x = np.array(y)
+    np_y = np.array(zz[:, index])
+    plt_r = axR.plot(np_x, np_y, linewidth=2)
+    axR.set_title('cos')
+    axR.set_xlabel('t[sec]')
+    axR.set_ylabel('amp')
+    # axR.set_xlim(-, np.pi)
+    axR.grid(True)
 
 # キーボードのイベント処理
 def onkey(event):
@@ -28,6 +41,7 @@ def update(event):
     point = axL.plot(line_x, line_y, color="red")
     axR.set_title("index:" + str(select_index) + " t:" + str(x[select_index]) + "[sec]")
     fig.canvas.draw()
+    drawRight(select_index)
 
 # マウスのイベント処理
 def onclick(event):
@@ -50,29 +64,20 @@ y = p2[0, 1:]
 xx, yy = np.meshgrid(x, y)
 zz = p2[1:, 1:].T
 
-t = np.linspace(-np.pi, np.pi, 1000)
-
-x2 = np.cos(2*t)
-
 fig, (axL, axR) = plt.subplots(ncols=2, figsize=(10, 4))
-
 point = axL.plot(0, y[0], ".", color="red")
-
 axL.contourf(xx, yy, zz, levels=10)
-axL.set_title('sin')
-axL.set_xlabel('t')
-axL.set_ylabel('x')
+axL.set_title('')
+axL.set_xlabel('time[sec]')
+axL.set_ylabel('distance[m]')
 axL.grid(True)
+np_x = np.array(y)
+np_y = np.array(zz[:, 0])
+plt_r = axR.plot(np_x, np_y, linewidth=2)
+drawRight(0)
 
-axR.plot(t, x2, linewidth=2)
-axR.set_title('cos')
-axR.set_xlabel('t')
-axR.set_ylabel('x')
-axR.set_xlim(-np.pi, np.pi)
-axR.grid(True)
-
-# cid = fig.canvas.mpl_connect('button_press_event', lambda event, :onclick(event, select_index))
+mpl.rcParams['keymap.back'].remove('left')
+mpl.rcParams['keymap.forward'].remove('right')
 cid = fig.canvas.mpl_connect('button_press_event', onclick)
 cid = fig.canvas.mpl_connect('key_press_event', onkey)
-# cid = fig.canvas.mpl_connect('key_press_event',  lambda event, :onkey(event, select_index))
 plt.show()
