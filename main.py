@@ -6,6 +6,8 @@ import numpy as np
 import pylab
 import sys
 
+file_name = "test.csv"
+
 # 選択した箇所に線を引く
 def updateLeft(index):
     global point
@@ -14,7 +16,7 @@ def updateLeft(index):
     line_y = [y[0], y[len(y)-1]]
     point = axL.plot(line_x, line_y, color="red")
 
-# 選択したインデックスの振幅-時間グラフを表示
+# 選択したインデックスの振幅-距離グラフを表示
 def updateRight(index):
     global plt_r
     plt_r[0].remove()
@@ -38,6 +40,12 @@ def onkey(event):
         select_index -= 1
     if event.key == 'right':
         select_index += 1
+
+    if select_index == len(x):
+        select_index -= 1
+    if select_index == -1:
+        select_index = 0
+
     sys.stdout.flush()
     update(event)
 
@@ -51,12 +59,12 @@ def onclick(event):
     update(event)
 
 # ファイル選択ダイアログの表示
-root = tkinter.Tk()
-root.withdraw()
-fTyp = [("","*")]
-iDir = os.path.abspath(os.path.dirname(__file__))
-file_name = tkinter.filedialog.askopenfilename(filetypes = fTyp,initialdir = iDir)
-root.destroy()
+# root = tkinter.Tk()
+# root.withdraw()
+# fTyp = [("",".csv")]
+# iDir = os.path.abspath(os.path.dirname(__file__))
+# file_name = tkinter.filedialog.askopenfilename(filetypes = fTyp,initialdir = iDir)
+# root.destroy()
 
 # 選択したデータのインデックス
 select_index = 0
@@ -84,7 +92,7 @@ axL.grid(True)
 np_x = np.array(y)
 np_y = np.array(zz[:, 0])
 plt_r = axR.plot(np_x, np_y, color = '#ff7f00', linewidth=2)
-axR.set_xlabel('time[sec]')
+axR.set_xlabel('distance[m]')
 axR.set_ylabel('amplitude')
 axR.grid(True)
 
