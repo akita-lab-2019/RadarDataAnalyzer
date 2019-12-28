@@ -6,6 +6,8 @@ import numpy as np
 import pylab
 import sys
 
+color_list = ["#f9c00c", "#00b9f1", "#7200da", "#f9320c"]
+
 # 選択した箇所に線を引く
 def updateLeft(index):
     global cursor
@@ -24,7 +26,7 @@ def updateRight(index):
         plt_r[i][0].remove()
         np_x = np.array(y[i])
         np_y = np.array(zz[i][:, index])
-        plt_r[i] = axR.plot(np_x, np_y, color = '#ff7f00', linewidth=2)
+        plt_r[i] = axR.plot(np_x, np_y, color = color_list[i], linewidth=1.5, label=str(i+1))
     axR.set_title("index:" + str(index) + " t:" + str(x[0][index]) + "[sec]")
     # axR.set_xlim(,)
 
@@ -37,7 +39,6 @@ def update(event):
 # キーボードのイベント処理
 def onkey(event):
     global select_index
-    # print('you pressed', event.key, event.xdata, event.ydata)
     if event.key == 'left':
         select_index -= 1
     if event.key == 'right':
@@ -54,14 +55,12 @@ def onkey(event):
 # マウスのイベント処理
 def onclick(event):
     global select_index
-    # print ('button=%d (%d, %d) (%f, %f)' \
-    # %(event.button, event.x, event.y, event.xdata, event.ydata))
     select_index = np.searchsorted(x[0], event.xdata)
     update(event)
 
 # 選択したデータのインデックス
 args = sys.argv
-file_name = "test.csv"
+dir_name = "test.csv"
 select_index = 0
 
 # データ表示モード
@@ -74,17 +73,15 @@ if len(args) >= 2:
     mode = args[1]
 
 if len(args) >= 3:
-    file_name = args[2]
+    dir_name = args[2]
 
 # データ読み込み
 p2 = [0]*4
-p2[0] = np.genfromtxt(file_name + "/1.csv", delimiter=',', filling_values = 0)
-p2[1] = np.genfromtxt(file_name + "/2.csv", delimiter=',', filling_values = 0)
-p2[2] = np.genfromtxt(file_name + "/3.csv", delimiter=',', filling_values = 0)
-p2[3] = np.genfromtxt(file_name + "/4.csv", delimiter=',', filling_values = 0)
-# p2[2] = np.genfromtxt(file_name, delimiter=',', filling_values = 0)
-# p2[3] = np.genfromtxt(file_name, delimiter=',', filling_values = 0)
-
+for i in range(4):
+    try:
+        p2[i] = np.genfromtxt(dir_name + "/"+str(i+1)+".csv", delimiter=',', filling_values = 0)
+    except:
+        p2[i] = np.genfromtxt("non.csv", delimiter=',', filling_values = 0)
 
 # 格子点作成
 # x: 時間，y: 距離
@@ -99,25 +96,23 @@ for i in range(4):
     xx[i], yy[i] = np.meshgrid(x[i], y[i])
     zz[i] = p2[i][1:, 1:].T
 
-# # r乗算
-# if mode == "1":
-#     zz = zz * yy**0.8
 
-# # r^2乗算
-# if mode == "2":
-#     zz = zz * yy*2
+for i in range(4):
+    # r乗算
+    if mode == "1":
+        zz[i] = zz[i] * yy[i]**0.8
 
-# # 処理なし+r乗算
-# if mode == "3":
-#     zz = zz + zz * yy
+    # r^2乗算
+    if mode == "2":
+        zz[i] = zz[i] * yy[i]*2
 
-# # 処理なし+r^2乗算
-# if mode == "4":
-#     zz = zz + zz * yy**2
+    # 処理なし+r乗算
+    if mode == "3":
+        zz[i] = zz[i] + zz[i] * yy[i]
 
-# 各列の最大要素を取り出して1次元配列を生成
-z_max_list = np.argmax(zz[0], axis = 0)
-max_y = z_max_list * (y[0][1] - y[0][0]) + y[0][0]
+    # 処理なし+r^2乗算
+    if mode == "4":
+        zz[i] = zz[i] + zz[i] * yy[i]**2
 
 fig = plt.figure(figsize=(13, 6.7))
 ax = [0]*4
@@ -129,9 +124,13 @@ ax[3] = plt.subplot2grid((2,3), (1,1))
 # 左側の描画
 cursor = [0]*4
 for i in range(4):
-    cursor[i] = ax[i].plot(0, y[0][len(y)-1], ".", color="red")
-    ax[i].contourf(xx[0], yy[0], zz[0], levels=10)
-    ax[i].plot(x[0], max_y, color="Yellow")
+    # 各列の最大要素を取り出して1次元配列を生成
+    z_max_list = np.argmax(zz[i], axis = 0)
+    max_y = z_max_list * (y[i][1] - y[i][0]) + y[i][0]
+
+    cursor[i] = ax[i].plot(0, y[i][len(y)-1], ".", color="red")
+    ax[i].contourf(xx[i], yy[i], zz[i], levels=10)
+    ax[i].plot(x[i], max_y, color="Yellow", linewidth = 0.8)
     ax[i].set_title('')
     ax[i].grid(True)
 
@@ -143,8 +142,9 @@ plt_r = [0]*4
 for i in range(4):
     np_x[i] = np.array(y[i])
     np_y[i] = np.array(zz[i][:, 0])
-    plt_r[i] = axR.plot(np_x[i], np_y[i], color = '#ff7f00', linewidth=2)
+    plt_r[i] = axR.plot(np_x[i], np_y[i], color = color_list[i], linewidth=1.5, label=str(i+1))
 
+axR.legend()
 axR.set_ylim([0,zz[0].max()])
 axR.grid(True)
 
