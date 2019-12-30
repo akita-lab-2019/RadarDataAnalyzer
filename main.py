@@ -5,29 +5,32 @@ import matplotlib.cm as cm
 import numpy as np
 import pylab
 import sys
+import math
 
 color_list = ["#f9c00c", "#00b9f1", "#7200da", "#f9320c"]
 
 # 選択した箇所に線を引く
 def updateLeft(index):
-    global cursor
+    global cursor, max_y
     line_x = [x[0][index], x[0][index]]
     line_y = [y[0][0], y[0][len(y[0])-1]]
-    print(line_x)
-    print(line_y)
     for i in range(4):
         cursor[i][0].remove()
         cursor[i] = ax[i].plot(line_x, line_y, color="red")
+        ax[i].set_title('{:.3f}'.format(max_y[i][index])+"[m]",fontsize=12)
 
 # 選択したインデックスの振幅-距離グラフを表示
 def updateRight(index):
-    global plt_r
+    global plt_r, max_y
     for i in range(4):
         plt_r[i][0].remove()
         np_x = np.array(y[i])
         np_y = np.array(zz[i][:, index])
         plt_r[i] = axR.plot(np_x, np_y, color = color_list[i], linewidth=1.5, label=str(i+1))
-    axR.set_title("index:" + str(index) + " t:" + str(x[0][index]) + "[sec]")
+
+    d = [max_y[2][index], max_y[3][index]]
+    deg = math.degrees(math.atan2(d[1] - d[0], 0.15))
+    axR.set_title("index:" + str(index) + " t:" + str(x[0][index]) + "[sec]\n" + 'angle:{:.3f}'.format(deg)+"[deg]")
     # axR.set_xlim(,)
 
 # 再描画処理
@@ -96,7 +99,6 @@ for i in range(4):
     xx[i], yy[i] = np.meshgrid(x[i], y[i])
     zz[i] = p2[i][1:, 1:].T
 
-
 for i in range(4):
     # r乗算
     if mode == "1":
@@ -123,16 +125,17 @@ ax[3] = plt.subplot2grid((2,3), (1,1))
 
 # 左側の描画
 cursor = [0]*4
+max_y = [0]*4
 for i in range(4):
     # 各列の最大要素を取り出して1次元配列を生成
     z_max_list = np.argmax(zz[i], axis = 0)
-    max_y = z_max_list * (y[i][1] - y[i][0]) + y[i][0]
+    max_y[i] = z_max_list * (y[i][1] - y[i][0]) + y[i][0]
 
     cursor[i] = ax[i].plot(0, y[i][len(y)-1], ".", color="red")
     ax[i].contourf(xx[i], yy[i], zz[i], levels=10)
-    ax[i].plot(x[i], max_y, color="Yellow", linewidth = 0.8)
+    ax[i].plot(x[i], max_y[i], color="Yellow", linewidth = 0.8)
     ax[i].set_title('')
-    ax[i].grid(True)
+    ax[i].grid(False)
 
 # 右側の描画
 axR = plt.subplot2grid((2,3), (0,2), rowspan = 2)
